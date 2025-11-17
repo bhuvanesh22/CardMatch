@@ -48,4 +48,10 @@ public class MatchProcessor : MonoBehaviour
         yield return new WaitForSeconds ( 1.2f );
         isProcessing = false;
     }
+
+    public void ResetQueue ( )
+    {
+        tapQueue.Clear ( );
+        isProcessing = false;
+    }
 }

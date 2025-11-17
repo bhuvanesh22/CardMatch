@@ -8,7 +8,7 @@ namespace Framework
         Hidden = 0,
         Revealed = 1,
         Processing = 2,
-        Mathced  = 3
+        Matched  = 3
     }
 
     public enum TileType
@@ -22,5 +22,30 @@ namespace Framework
     public class LevelRow
     {
         public List<TileType> tiles;
+    }
+
+    [Serializable] 
+    public class GameData
+    {
+        public int currentLevelIndex;
+        public int currentRunScore;
+        public int highScore;
+
+        public InLevelState currentLevelState;
+    }
+
+    [Serializable]
+    public class InLevelState
+    {
+        public int matchesFound;
+        public int turnsTaken;
+        public List<TileSaveData> tileData;
+    }
+
+    [Serializable]
+    public class TileSaveData
+    {
+        public string spriteId;
+        public TileState state;
     }
 }

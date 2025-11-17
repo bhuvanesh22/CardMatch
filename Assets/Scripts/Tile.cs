@@ -1,8 +1,8 @@
+using Framework;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Framework;
 
 [RequireComponent(typeof(Button))]
 public class Tile : MonoBehaviour
@@ -49,7 +49,7 @@ public class Tile : MonoBehaviour
 
     public void HandleMatch()
     {
-        CurrentState = TileState.Mathced;
+        CurrentState = TileState.Matched;
         button.interactable = false;
         StartCoroutine ( MatchEffectAnimation ( ) );
     }
@@ -123,5 +123,37 @@ public class Tile : MonoBehaviour
         }
 
         gameObject.SetActive ( false );
+    }
+
+    public TileSaveData GetSaveData ( )
+    {
+        TileState stateToSave = CurrentState;
+        if ( stateToSave == TileState.Revealed || stateToSave == TileState.Processing )
+            stateToSave = TileState.Hidden;
+
+        return new TileSaveData
+        {
+            spriteId = SpriteId,
+            state = stateToSave
+        };
+    }
+    public void RestoreState ( TileState state )
+    {
+        CurrentState = state;
+
+        if ( state == TileState.Matched )
+        {
+            // Tile was already matched, just hide it
+            gameObject.SetActive ( false );
+            button.interactable = false;
+        }
+        else // state == TileState.Hidden
+        {
+            // Ensure it's in the default hidden state
+            faceImage.gameObject.SetActive ( false );
+            backImage.gameObject.SetActive ( true );
+            transform.localScale = Vector3.one; // Reset scale
+            button.interactable = true;
+        }
     }
 }

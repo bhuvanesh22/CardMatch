@@ -1,5 +1,7 @@
+using Framework;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +15,9 @@ public class LevelManager : MonoBehaviour
 
     [SerializeField] GridManager gridManager;
     [SerializeField] GameManager gameManager;
+    [SerializeField] MatchProcessor matchProcessor;
+
+    [SerializeField] bool isQuitting = false;
 
     public int CurrentLevelIndex { get; private set; } = 0;
 
@@ -23,7 +28,7 @@ public class LevelManager : MonoBehaviour
 
     void Initialize()
     {
-        if ( allLevels == null || allLevels.Count <= 0 || gridManager == null || gameManager == null )
+        if ( allLevels == null || allLevels.Count <= 0 || gridManager == null || gameManager == null || matchProcessor == null )
             return;
 
         if ( nextLevelButton != null )
@@ -43,7 +48,47 @@ public class LevelManager : MonoBehaviour
         if ( gameCompletePanel != null )
             gameCompletePanel.SetActive ( false );
 
-        StartLevel ( );
+        GameData savedData = SaveSystem.LoadGame ( );
+        if ( savedData != null )
+        {
+            if ( savedData.currentLevelIndex >= allLevels.Count )
+            {
+                Debug.LogWarning ( "Saved level index is out of bounds (levels may have been removed). Starting new game." );
+                SaveSystem.DeleteSaveFile ( );
+                gameManager.LoadPersistentScores ( 0, 0 ); // Reset scores
+                StartLevel ( );
+                return; // Exit Start()
+            }
+
+            Debug.Log ( "Loading saved game..." );
+            CurrentLevelIndex = savedData.currentLevelIndex;
+
+            gameManager.LoadPersistentScores ( savedData.currentRunScore, savedData.highScore );
+
+            InLevelState stateToLoad = savedData.currentLevelState;
+            if ( stateToLoad != null )
+            {
+                LevelData levelAsset = allLevels [ CurrentLevelIndex ];
+                int expectedTiles = 0;
+                foreach ( var row in levelAsset.gridLayout )
+                    expectedTiles += row.tiles.Count ( t => t == TileType.Tappable );
+
+                if ( stateToLoad.tileData.Count != expectedTiles )
+                {
+                    Debug.LogWarning ( "Save data tile count mismatch (LevelData may have changed)! Discarding in-progress level state." );
+                    stateToLoad = null; // Discard the state, but keep score
+                }
+            }
+
+            gridManager.GenerateGrid ( allLevels [ CurrentLevelIndex ], savedData.currentLevelState );
+        }
+        else
+        {
+            // --- NEW GAME ---
+            Debug.Log ( "Starting new game..." );
+            gameManager.LoadPersistentScores ( 0, 0 ); // Reset scores
+            StartLevel ( );
+        }
     }
 
     void StartLevel ( )
@@ -55,14 +100,17 @@ public class LevelManager : MonoBehaviour
             gridManager.ClearGrid ( );
             return;
         }
+        if ( CurrentLevelIndex == 0 )
+            gameManager.ResetCurrentRunScore ( );
         LevelData dataToLoad = allLevels [ CurrentLevelIndex ];
-        gridManager.GenerateGrid ( dataToLoad );
+        gridManager.GenerateGrid ( dataToLoad, null );
     }
 
     public void OnLevelCompleted()
     {
         if ( levelCompletetPanel != null )
             levelCompletetPanel.SetActive ( true );
+        SaveProgressOnly ( );
     }
 
     void LoadNextLevel()
@@ -78,8 +126,10 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
+        gameManager.FinalizeScore ( );
         if ( gameCompletePanel != null )
             gameCompletePanel.SetActive ( true );
+        SaveProgressOnly ( );
     }
 
     void RestartCurrentLevel()
@@ -98,8 +148,50 @@ public class LevelManager : MonoBehaviour
         if ( gameCompletePanel != null )
             gameCompletePanel.SetActive ( false );
 
+        SaveSystem.DeleteSaveFile ( );
         CurrentLevelIndex = 0;
         StartLevel ( );
+    }
+
+    public void SaveInProgressLevel ( )
+    {
+        if ( isQuitting )
+            return; 
+
+        Debug.Log ( "Saving in-progress level..." );
+        GameData data = new GameData ( );
+
+        // Get state from all managers
+        data.currentLevelIndex = CurrentLevelIndex;
+        (data.currentRunScore, data.highScore) = gameManager.GetPersistentScores ( );
+        data.currentLevelState = new InLevelState ( );
+        (data.currentLevelState.matchesFound, data.currentLevelState.turnsTaken) = gameManager.GetLevelState ( );
+        data.currentLevelState.tileData = gridManager.GetTileSaveData ( );
+
+        SaveSystem.SaveGame ( data );
+    }
+
+    void SaveProgressOnly ( )
+    {
+        Debug.Log ( "Saving progress..." );
+        GameData data = new GameData ( );
+        data.currentLevelIndex = CurrentLevelIndex;
+        (data.currentRunScore, data.highScore) = gameManager.GetPersistentScores ( );
+        data.currentLevelState = null; 
+
+        SaveSystem.SaveGame ( data );
+    }
+
+    void OnApplicationPause ( bool pauseStatus )
+    {
+        if ( pauseStatus )
+            SaveInProgressLevel ( );
+    }
+
+    void OnApplicationQuit ( )
+    {
+        isQuitting = true;
+        SaveInProgressLevel ( );
     }
 
     void OnClose( )
