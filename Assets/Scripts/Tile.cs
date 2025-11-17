@@ -34,6 +34,9 @@ public class Tile : MonoBehaviour
     {
         if ( CurrentState != TileState.Hidden || !matchProcessor.CanProcessTap ( ) )
             return;
+
+        AudioManager.Instance.PlayFlip ( );
+
         CurrentState = TileState.Revealed;
         button.interactable = false;
         matchProcessor.AddTileToQueue ( this );
@@ -105,6 +108,7 @@ public class Tile : MonoBehaviour
         }
         transform.localScale = targetScale;
 
+        AudioManager.Instance.PlayMismatch ( );
         CurrentState = TileState.Hidden;
         button.interactable = true;
     }
@@ -121,7 +125,7 @@ public class Tile : MonoBehaviour
             transform.localScale = Vector3.Lerp ( originalScale, targetScale, t / FlipDuration );
             yield return null;
         }
-
+        AudioManager.Instance.PlayMatch ( );
         gameObject.SetActive ( false );
     }
 

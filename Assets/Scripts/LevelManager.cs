@@ -19,7 +19,7 @@ public class LevelManager : MonoBehaviour
 
     [SerializeField] bool isQuitting = false;
 
-    public int CurrentLevelIndex { get; private set; } = 0;
+    [field:SerializeField]public int CurrentLevelIndex { get; private set; } = 0;
 
     private void Start ( )
     {
@@ -110,6 +110,7 @@ public class LevelManager : MonoBehaviour
     {
         if ( levelCompletetPanel != null )
             levelCompletetPanel.SetActive ( true );
+        AudioManager.Instance.PlayGameOver ( );
         SaveProgressOnly ( );
     }
 
