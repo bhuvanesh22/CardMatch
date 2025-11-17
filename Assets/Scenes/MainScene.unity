@@ -3472,7 +3472,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   musicSource: {fileID: 1720678323}
   sfxSource: {fileID: 1720678321}
-  backgroundMusic: {fileID: 8300000, guid: ed57f2770455c5443991da4f3aba81d7, type: 3}
+  backgroundMusic: {fileID: 8300000, guid: 76c29e0de0e668f41948b269c92d1154, type: 3}
   cardFlipClip: {fileID: 8300000, guid: 07abeeb66670fa14e88d3d80652c18f3, type: 3}
   matchClip: {fileID: 8300000, guid: ba04acaec9d92b047a92941e52be46ea, type: 3}
   mismatchClip: {fileID: 8300000, guid: 8558f3d3302b63749ba7d44bc4dec101, type: 3}
@@ -3489,7 +3489,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.25
   m_Pitch: 1
   Loop: 0
   Mute: 0

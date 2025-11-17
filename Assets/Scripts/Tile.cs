@@ -95,10 +95,11 @@ public class Tile : MonoBehaviour
             yield return null;
         }
         transform.localScale = targetScale;
-
+        
         backImage.gameObject.SetActive ( true );
         faceImage.gameObject.SetActive ( false );
-
+        
+        AudioManager.Instance.PlayMismatch ( );
         targetScale = originalScale;
 
         for ( float t = 0; t < FlipDuration / 2; t += Time.deltaTime )
@@ -108,7 +109,6 @@ public class Tile : MonoBehaviour
         }
         transform.localScale = targetScale;
 
-        AudioManager.Instance.PlayMismatch ( );
         CurrentState = TileState.Hidden;
         button.interactable = true;
     }
@@ -120,12 +120,13 @@ public class Tile : MonoBehaviour
         Vector3 originalScale = transform.localScale;
         Vector3 targetScale = Vector3.zero;
 
+        AudioManager.Instance.PlayMatch ( );
         for ( float t = 0; t < FlipDuration; t += Time.deltaTime )
         {
             transform.localScale = Vector3.Lerp ( originalScale, targetScale, t / FlipDuration );
             yield return null;
         }
-        AudioManager.Instance.PlayMatch ( );
+        
         gameObject.SetActive ( false );
     }
 
