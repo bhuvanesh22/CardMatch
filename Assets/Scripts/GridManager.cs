@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 public class GridManager : MonoBehaviour
 {
-    [field : SerializeField] public LevelData LevelData { get; private set; }
+    //[field : SerializeField] public LevelData LevelData { get; private set; }
 
     [SerializeField] GameObject 
         tilePrefab,
@@ -26,14 +26,17 @@ public class GridManager : MonoBehaviour
 
     List<Tile> allTiles = new ( );
 
-    private void Start ( )
+    public void ClearGrid ()
     {
-        GenerateGrid ( );
+        foreach ( Transform child in gridContainer )
+            Destroy ( child.gameObject );
+
+        allTiles.Clear();
     }
 
-    void GenerateGrid ( )
+    public void GenerateGrid ( LevelData levelData)
     {
-        if ( LevelData == null
+        if ( levelData == null
             || tilePrefab == null
             || matchProcessor == null
             || gameManager == null
@@ -41,13 +44,13 @@ public class GridManager : MonoBehaviour
             return;
 
         int totalTappableTiles = 0;
-        int numRows = LevelData.gridLayout.Count;
+        int numRows = levelData.gridLayout.Count;
         int maxCols = 0;
 
         if ( numRows == 0 )
             return;
 
-        foreach ( LevelRow row in LevelData.gridLayout )
+        foreach ( LevelRow row in levelData.gridLayout )
         {
             if ( row.tiles.Count > maxCols )
                 maxCols = row.tiles.Count;
@@ -59,14 +62,14 @@ public class GridManager : MonoBehaviour
             return;
 
         int numPairs = totalTappableTiles / 2;
-        if ( LevelData.cardSprites.Count < numPairs )
+        if ( levelData.cardSprites.Count < numPairs )
             return;
 
         List<Sprite> spritesForGrid = new ( );
         for ( int i = 0; i < numPairs; i++ )
         {
-            spritesForGrid.Add(LevelData.cardSprites[i]);
-            spritesForGrid.Add(LevelData.cardSprites[i]);
+            spritesForGrid.Add(levelData.cardSprites[i]);
+            spritesForGrid.Add( levelData.cardSprites[i]);
         }
 
         System.Random rng = new ( );
@@ -82,7 +85,7 @@ public class GridManager : MonoBehaviour
 
         for ( int y = 0; y < numRows; y++ )
         {
-            LevelRow row = LevelData.gridLayout[y];
+            LevelRow row = levelData.gridLayout[y];
             for ( int x = 0; x < row.tiles.Count; x++ )
             {
                 TileType tileType = row.tiles[x];
@@ -119,7 +122,7 @@ public class GridManager : MonoBehaviour
                         Sprite faceSprite = shuffledSprites [spriteIndex]; 
                         string spriteId = faceSprite.name;
 
-                        tileComponent.Initialize ( spriteId, faceSprite, LevelData.backSprite, matchProcessor );
+                        tileComponent.Initialize ( spriteId, faceSprite, levelData.backSprite, matchProcessor );
                         allTiles.Add ( tileComponent );
 
                         spriteIndex++;

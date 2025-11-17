@@ -1,13 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     int
         matchesFound = 0,
+        score = 0,
         turnsTaken = 0,
         totalPairsToFind = 0;
 
@@ -15,16 +13,15 @@ public class GameManager : MonoBehaviour
         scoreText,
         turnsText;
 
-    [SerializeField] GameObject 
-        levelCompletePanel;
+    [SerializeField] LevelManager 
+        levelManager;
 
     public void InitiaizeGame(int totalPairs)
     {
         totalPairsToFind = totalPairs;
+        if(levelManager.CurrentLevelIndex == 0) score = 0;
         matchesFound = 0;
         turnsTaken = 0;
-
-        if ( levelCompletePanel) levelCompletePanel.SetActive(false);
 
         UpdateUI ( );
     }
@@ -32,6 +29,7 @@ public class GameManager : MonoBehaviour
     public void OnMatchFound()
     {
         matchesFound++;
+        score++;
         turnsTaken++;
 
         UpdateUI ( );
@@ -59,11 +57,7 @@ public class GameManager : MonoBehaviour
             return;
 
         Debug.Log ( "Level Complete" );
-        if(levelCompletePanel) levelCompletePanel.SetActive (true);
-    }
-
-    public void RestartLevel()
-    {
-        SceneManager.LoadScene ( SceneManager.GetActiveScene ( ).name );
+        if ( levelManager != null )
+            levelManager.OnLevelCompleted ( );
     }
 }
